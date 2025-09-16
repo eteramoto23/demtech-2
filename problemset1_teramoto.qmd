@@ -1,0 +1,81 @@
+---
+title: "problemset1_teramoto"
+editor: visual
+format: 
+  html:
+    embed-resources: true
+---
+
+## 
+
+```{r}
+pacman::p_load(tidyverse,
+               haven,
+               here,
+               foreign,
+               janitor,
+               TAM,
+               sas7bdat,
+               ggplot2)
+here::i_am("demtech-2/problemset1_teramoto.qmd")
+library(here)
+here()
+setwd("~/Library/CloudStorage/GoogleDrive-erikateramoto@g.ecc.u-tokyo.ac.jp/My Drive/Wisc/Wisc 2025-2026/SOC 756/problem sets")
+
+d <- read_csv("demtech-2/data/ps1_data_F2023.csv")
+
+
+```
+
+# 1. a. life table construction
+
+```{r}
+d1 <- d |>
+  mutate(n = case_when(x == 0 ~1,
+                       x == 1 ~4,
+                       x %in% 5:80 ~ 5,
+                       x == 85 ~ 10),
+         nmx = nDx/ nNx,
+         nqx = (n* nmx)/ (1 +(n - nax) * nmx) ,
+         npx = 1-nqx,
+         nlx = 100 * cumprod(c(1, npx[-length(npx)])),
+         ndx = nlx * nqx,
+         nLx = (n * lead(nlx) ) + (nax * ndx),
+         nLx = case_when(x == 85 ~ nlx/nmx,
+                         TRUE ~ nLx),
+         nTx = rev(cumsum(rev(nLx))),
+         ex = nTx / nlx)
+           
+           
+```
+
+# 1. b. graph
+
+```{r}
+d1_long <- d1 |>
+  select(
+    interval = x, 
+    nlx,ndx,nmx)|>
+  pivot_longer(
+    cols = c(nlx,ndx,nmx),
+    names_to = "line",
+    values_to = "value"
+  )
+
+g <- d1_long |>
+  ggplot(aes(x = interval,
+             y = value,
+             group = line,
+             color = line))+
+  geom_line()+
+  geom_point()
+g
+
+    ggsave(plot = g, 
+       filename = here::here("demtech-2","figures","ps1.png"), 
+       device = "jpeg", 
+       units = "cm",
+       width = 20,
+       height = 12, 
+       dpi = 400)
+```
