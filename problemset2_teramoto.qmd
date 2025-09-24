@@ -47,7 +47,8 @@ d <- read_csv("data/ps2_Fall2025_data.csv")|>
                          x == "90-94" ~90,
                          x == "95-99" ~95,
                          x == "100-104"~100,
-                         x == "105-109" ~105
+                         x == "105-109" ~105,
+                         x == "110+" ~ 110
                          ))|>
   mutate(poverty = as.numeric(poverty))
 ```
@@ -95,7 +96,6 @@ male2 <- d |>
 both <- male2 |>
   left_join(female2, by = "Age")|>
   select(Age,everything())|>
-  filter(Age<105)|>
   mutate(L_p_f = pov_f * Lx_f,
          L_p_m = pov_m * Lx_m,
          Tx_f = rev(cumsum(rev(L_p_f))),
