@@ -53,11 +53,13 @@ d <- read_csv("data/ps2_Fall2025_data.csv")|>
   mutate(poverty = as.numeric(poverty))
 ```
 
+\#
+
 ```{r}
 female <- readHMDweb( CNTRY = "USA", 
             item = "fltper_5x1", 
-            username = "eteramoto@wisc.edu", 
-            password = "83D-9b7tQT@#F8L", 
+            username = 
+            password = 
             fixup = TRUE )|>
   filter(Year == 2004)|>
   select(Age,
@@ -77,8 +79,8 @@ female2 <- d |>
 
 male <- readHMDweb( CNTRY = "USA", 
             item = "mltper_5x1", 
-            username = "eteramoto@wisc.edu", 
-            password = "83D-9b7tQT@#F8L", 
+            username = 
+            password = 
             fixup = TRUE )|>
   filter(Year == 2004)|>
   select(Age,Lx_m = Lx,
