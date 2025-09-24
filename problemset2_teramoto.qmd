@@ -1,0 +1,121 @@
+---
+title: "problemset2_teramoto"
+format: html
+editor: visual
+---
+
+```{r}
+pacman::p_load(tidyverse,
+               haven,
+               here,
+               foreign,
+               janitor,
+               TAM,
+               sas7bdat,
+               ggplot2,
+               writexl,
+               HMDHFDplus)
+here::i_am("problemset2_teramoto.qmd")
+library(here)
+here()
+setwd("~/Library/CloudStorage/GoogleDrive-erikateramoto@g.ecc.u-tokyo.ac.jp/My Drive/Wisc/Wisc 2025-2026/SOC 756/problem sets/demtech-2")
+
+d <- read_csv("data/ps2_Fall2025_data.csv")|>
+  select(x,
+         poverty = `proportion_poverty_1-n_x`,
+         number = number_sampled_N,
+         sex)|>
+  mutate(Age = case_when(x == "0-1" ~0,
+                         x == "1-4" ~1,
+                         x == "5-9" ~ 5,
+                         x == "10-14" ~10,
+                         x == "15-19" ~15,
+                         x == "20-24" ~20,
+                         x == "25-29" ~25,
+                         x == "30-34" ~30,
+                         x == "35-39" ~35,
+                         x == "40-44" ~40,
+                         x == "45-49"~45,
+                         x == "50-54"~ 50,
+                         x == "55-59"~55,
+                         x == "60-64" ~60,
+                         x == "65-69" ~65,
+                         x == "70-74" ~70,
+                         x == "75-79"~75,
+                         x == "80-84" ~80,
+                         x == "85-89" ~85,
+                         x == "90-94" ~90,
+                         x == "95-99" ~95,
+                         x == "100-104"~100,
+                         x == "105-109" ~105
+                         ))|>
+  mutate(poverty = as.numeric(poverty))
+```
+
+```{r}
+female <- readHMDweb( CNTRY = "USA", 
+            item = "fltper_5x1", 
+            username = "eteramoto@wisc.edu", 
+            password = "83D-9b7tQT@#F8L", 
+            fixup = TRUE )|>
+  filter(Year == 2004)|>
+  select(Age,
+         Lx_f = Lx,
+         lx_f = lx)
+
+
+female2 <- d |>
+  filter(sex == "female")|>
+  left_join(female, by = "Age")|>
+  select(-sex,-x,
+         Age,
+         pov_f = poverty, 
+         num_f = number,
+         Lx_f)
+
+
+male <- readHMDweb( CNTRY = "USA", 
+            item = "mltper_5x1", 
+            username = "eteramoto@wisc.edu", 
+            password = "83D-9b7tQT@#F8L", 
+            fixup = TRUE )|>
+  filter(Year == 2004)|>
+  select(Age,Lx_m = Lx,
+         lx_m = lx)
+
+male2 <- d |>
+  filter(sex == "male")|>
+  left_join(male, by = "Age")|>
+  select(-sex,-x,
+         Age,
+         pov_m = poverty, 
+         num_m = number,
+         Lx_m)
+
+both <- male2 |>
+  left_join(female2, by = "Age")|>
+  select(Age,everything())|>
+  filter(Age<105)|>
+  mutate(L_p_f = pov_f * Lx_f,
+         L_p_m = pov_m * Lx_m,
+         Tx_f = rev(cumsum(rev(L_p_f))),
+         Tx_m = rev(cumsum(rev(L_p_m))),
+         ex_p_f = (1/lx_f)*Tx_f,
+         ex_p_m = (1/lx_m)*Tx_m,
+         s_sq_f = (pov_f * (1-pov_f)/num_f),
+         s_sq_m = (pov_m * (1-pov_m)/num_m),
+         var_e_f = (1/(lx_f)^2)*(((Lx_f)^2)*s_sq_f),
+         var_e_m = (1/(lx_m)^2)*(((Lx_m)^2)*s_sq_m),
+    z = (ex_p_f - ex_p_m)/(sqrt(var_e_f + var_e_m)),
+         significance = case_when(z> 3.29 ~0.001,
+                                  z> 3.09 ~0.002,
+                                  z> 2.58 ~0.01,
+                                  z> 2.33 ~0.02,
+                                  z> 1.96 ~0.05,
+                                  z> 1.645 ~0.1,
+                                  z> 1.28 ~0.2,
+                                  TRUE ~ NA_real_))
+
+write_xlsx(both,
+          path = here::here("tables","ps2.xlsx"))  
+```
