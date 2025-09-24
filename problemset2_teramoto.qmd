@@ -55,8 +55,8 @@ d <- read_csv("data/ps2_Fall2025_data.csv")|>
 ```{r}
 female <- readHMDweb( CNTRY = "USA", 
             item = "fltper_5x1", 
-            username = 
-            password = 
+            username = "eteramoto@wisc.edu", 
+            password = "83D-9b7tQT@#F8L", 
             fixup = TRUE )|>
   filter(Year == 2004)|>
   select(Age,
@@ -76,8 +76,8 @@ female2 <- d |>
 
 male <- readHMDweb( CNTRY = "USA", 
             item = "mltper_5x1", 
-            username = 
-            password = 
+            username = "eteramoto@wisc.edu", 
+            password = "83D-9b7tQT@#F8L", 
             fixup = TRUE )|>
   filter(Year == 2004)|>
   select(Age,Lx_m = Lx,
@@ -102,11 +102,17 @@ both <- male2 |>
          Tx_m = rev(cumsum(rev(L_p_m))),
          ex_p_f = (1/lx_f)*Tx_f,
          ex_p_m = (1/lx_m)*Tx_m,
-         s_sq_f = (pov_f * (1-pov_f)/num_f),
-         s_sq_m = (pov_m * (1-pov_m)/num_m),
-         var_e_f = (1/(lx_f)^2)*(((Lx_f)^2)*s_sq_f),
-         var_e_m = (1/(lx_m)^2)*(((Lx_m)^2)*s_sq_m),
-    z = (ex_p_f - ex_p_m)/(sqrt(var_e_f + var_e_m)),
+         var_p_f = (pov_f * (1-pov_f))/num_f,
+         var_p_m = (pov_m * (1-pov_m))/num_m,
+         Lvar_p_f = ((Lx_f^2)*var_p_f),
+         Lvar_p_m = ((Lx_m^2)*var_p_m),
+         sum_var_f = rev(cumsum(rev(Lvar_p_f))),
+         sum_var_m = rev(cumsum(rev(Lvar_p_m))),
+         var_e_f = (1/(lx_f)^2)*sum_var_f,
+         var_e_m = (1/(lx_m)^2)*sum_var_m,
+         se_e_f = sqrt(var_e_f),
+         se_e_m = sqrt(var_e_m),
+    z = (ex_p_f - ex_p_m)/(se_e_f + se_e_m),
          significance = case_when(z> 3.29 ~0.001,
                                   z> 3.09 ~0.002,
                                   z> 2.58 ~0.01,
