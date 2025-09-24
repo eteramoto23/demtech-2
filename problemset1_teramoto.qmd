@@ -16,13 +16,14 @@ pacman::p_load(tidyverse,
                janitor,
                TAM,
                sas7bdat,
-               ggplot2)
-here::i_am("demtech-2/problemset1_teramoto.qmd")
+               ggplot2,
+               writexl)
+here::i_am("problemset1_teramoto.qmd")
 library(here)
 here()
-setwd("~/Library/CloudStorage/GoogleDrive-erikateramoto@g.ecc.u-tokyo.ac.jp/My Drive/Wisc/Wisc 2025-2026/SOC 756/problem sets")
+setwd("~/Library/CloudStorage/GoogleDrive-erikateramoto@g.ecc.u-tokyo.ac.jp/My Drive/Wisc/Wisc 2025-2026/SOC 756/problem sets/demtech-2")
 
-d <- read_csv("demtech-2/data/ps1_data_F2023.csv")
+d <- read_csv("data/ps1_data_F2023.csv")
 
 
 ```
@@ -45,7 +46,9 @@ d1 <- d |>
                          TRUE ~ nLx),
          nTx = rev(cumsum(rev(nLx))),
          ex = nTx / nlx)
-           
+  
+write_xlsx(d1,
+          path = here::here("tables","lifetable.xlsx"))       
            
 ```
 
@@ -55,9 +58,9 @@ d1 <- d |>
 d1_long <- d1 |>
   select(
     interval = x, 
-    nlx,ndx,nmx)|>
+    nlx,ndx)|>
   pivot_longer(
-    cols = c(nlx,ndx,nmx),
+    cols = c(nlx,ndx),
     names_to = "line",
     values_to = "value"
   )
@@ -72,10 +75,38 @@ g <- d1_long |>
 g
 
     ggsave(plot = g, 
-       filename = here::here("demtech-2","figures","ps1.png"), 
+       filename = here::here("figures","ps1_fig1.jpeg"), 
        device = "jpeg", 
        units = "cm",
        width = 20,
        height = 12, 
        dpi = 400)
+
+
+
+d1_long2 <- d1 |>
+  select(
+    interval = x, 
+    nmx)|>
+  pivot_longer(
+    cols = c(nmx),
+    names_to = "line",
+    values_to = "value"
+  )
+
+g2 <- d1_long2 |>
+  ggplot(aes(x = interval,
+             y = value))+
+  geom_line()+
+  geom_point()
+g2
+
+    ggsave(plot = g2, 
+       filename = here::here("figures","ps1_fig2.png"), 
+       device = "jpeg", 
+       units = "cm",
+       width = 20,
+       height = 12, 
+       dpi = 400)
+
 ```
