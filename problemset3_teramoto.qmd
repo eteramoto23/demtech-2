@@ -25,27 +25,26 @@ You can add options to executable code like this
 
 ```{r}
 
-  df <- read_table("data/Mx_1x1.txt",
+  df <- read_table("data/bltper_1x1.txt",
                    skip = 1)|>
     filter(Year == 2005)|>
-    select(-Female, -Male,
-           year = Year,
+    filter(Age %in% 16:31)|>
+    select(ear = Year,
            age = Age,
-           nMx = Total)|>
-    
+           nqx_die = qx)|>
     mutate(
       age = as.numeric(age),
       age = case_when(is.na(age) ~ 110,
                    TRUE ~ age),
       ax = case_when(age == 0 ~ 0.07, 
                      TRUE ~ 0.5),
-      q_die = (2*nMx)/(2+nMx),
-      q_die2 = nMx/(1+(1-ax)*nMx),
+      #q_die = (2*nMx)/(2+nMx),
+      #q_die2 = nMx/(1+(1-ax)*nMx),
       q_acc = pmax(0,0.062 - (0.000053*age^2)),
-      q_all = q_die2 + q_acc,
+      q_all = nqx_die + q_acc,
       p_all = 1-q_all,
-      lx =  c(100, 100 * cumprod(p_all))[1:length(p_all)],
-      ndx_die = lx*q_die2,
+      lx =  c(85000, 85000 * cumprod(p_all))[1:length(p_all)],
+      ndx_die = lx*nqx_die,
       ndx_acc = lx*q_acc)
 
   write_xlsx(df,
