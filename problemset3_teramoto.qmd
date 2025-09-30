@@ -29,15 +29,13 @@ You can add options to executable code like this
                    skip = 1)|>
     filter(Year == 2005)|>
     filter(Age %in% 16:31)|>
-    select(ear = Year,
+    select(year = Year,
            age = Age,
            nqx_die = qx)|>
     mutate(
       age = as.numeric(age),
       age = case_when(is.na(age) ~ 110,
                    TRUE ~ age),
-      ax = case_when(age == 0 ~ 0.07, 
-                     TRUE ~ 0.5),
       #q_die = (2*nMx)/(2+nMx),
       #q_die2 = nMx/(1+(1-ax)*nMx),
       q_acc = pmax(0,0.062 - (0.000053*age^2)),
